@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Little Warehouse</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: system-ui, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      min-height: 100vh;
+    }
+
+    /* LOGIN */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f5f5f5;
+    }
+    #login-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 380px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+    }
+    #login-box h1 { font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; color: #1a1a2e; }
+    #login-box p  { font-size: 0.85rem; color: #6b7280; margin-bottom: 1.75rem; }
+    .login-field  { display: flex; flex-direction: column; gap: 0.3rem; margin-bottom: 1rem; }
+    .login-field label { font-size: 0.8rem; font-weight: 500; color: #374151; }
+    .login-field input {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.6rem 0.75rem;
+      font-size: 0.95rem;
+      font-family: inherit;
+      color: #111;
+    }
+    .login-field input:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+    #login-btn {
+      width: 100%;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.7rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      font-family: inherit;
+    }
+    #login-btn:hover { background: #2d2d4e; }
+    #login-btn:disabled { background: #9ca3af; cursor: not-allowed; }
+    #login-error { font-size: 0.82rem; color: #dc2626; margin-top: 0.75rem; display: none; text-align: center; }
+
+    /* APP */
+    #app { display: none; }
+
+    header {
+      background: #1a1a2e;
+      color: #fff;
+      padding: 1.5rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    header h1 { font-size: 1.4rem; font-weight: 600; }
+    .header-right { display: flex; align-items: center; gap: 0.75rem; }
+    #user-email { font-size: 0.8rem; color: #93c5fd; }
+    #add-btn {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+    #add-btn:hover { background: #2563eb; }
+    #logout-btn {
+      background: transparent;
+      color: #93c5fd;
+      border: 1px solid #93c5fd;
+      border-radius: 6px;
+      padding: 0.4rem 1rem;
+      font-size: 0.85rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #logout-btn:hover { background: rgba(147,197,253,0.1); }
+
+    #status { padding: 0.75rem 2rem; font-size: 0.85rem; color: #666; min-height: 2.5rem; }
+    #status.error { color: #dc2626; }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+      padding: 1.25rem 2rem 3rem;
+    }
+
+    /* CARD */
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 4px rgba(0,0,0,.1);
+      display: flex;
+      flex-direction: column;
+      transition: box-shadow 0.15s;
+    }
+    .card:hover { box-shadow: 0 4px 14px rgba(0,0,0,.14); }
+    .card img { width: 100%; height: 180px; object-fit: cover; background: #e5e7eb; }
+    .card-no-img {
+      height: 180px;
+      background: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #9ca3af;
+      font-size: 0.85rem;
+    }
+    .card-body { padding: 1rem; flex: 1; }
+    .card-body h2 { font-size: 1rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .card-body p  { font-size: 0.875rem; color: #555; line-height: 1.5; margin-bottom: 0.5rem; }
+    .card-meta { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 0.5rem; }
+
+    /* THREE-DOT MENU */
+    .card-menu-wrap {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+    }
+    .card img, .card-no-img { position: relative; }
+    .card .card-img-wrap {
+      position: relative;
+    }
+    .btn-dots {
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      backdrop-filter: blur(4px);
+      transition: background 0.15s;
+    }
+    .btn-dots:hover { background: rgba(0,0,0,0.65); }
+    .card-dropdown {
+      display: none;
+      position: absolute;
+      top: 38px;
+      right: 0;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      min-width: 130px;
+      z-index: 50;
+      overflow: hidden;
+    }
+    .card-dropdown.open { display: block; }
+    .card-dropdown button {
+      display: block;
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 0.65rem 1rem;
+      text-align: left;
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      color: #374151;
+    }
+    .card-dropdown button:hover { background: #f3f4f6; }
+    .card-dropdown button.danger { color: #dc2626; }
+    .card-dropdown button.danger:hover { background: #fef2f2; }
+
+    .badge { font-size: 0.7rem; padding: 0.2rem 0.5rem; border-radius: 999px; font-weight: 500; }
+    .badge-status-available { background: #dcfce7; color: #166534; }
+    .badge-status-reserved  { background: #fef9c3; color: #854d0e; }
+    .badge-status-sold      { background: #fee2e2; color: #991b1b; }
+    .badge-status-default   { background: #e5e7eb; color: #374151; }
+    .badge-category  { background: #ede9fe; color: #4c1d95; }
+    .badge-condition { background: #e0f2fe; color: #0c4a6e; }
+
+    /* MODAL */
+    #modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: #fff;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    #modal-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 1;
+    }
+    #modal-header h2 { font-size: 1.1rem; font-weight: 600; }
+    #modal-close {
+      background: none;
+      border: none;
+      font-size: 1.4rem;
+      cursor: pointer;
+      color: #6b7280;
+      line-height: 1;
+      padding: 0.25rem;
+    }
+    #modal-close:hover { color: #111; }
+    #modal-body { padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; }
+
+    .field { display: flex; flex-direction: column; gap: 0.3rem; }
+    .field label { font-size: 0.8rem; font-weight: 500; color: #374151; }
+    .field input,
+    .field textarea,
+    .field select {
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      color: #111;
+      background: #fff;
+    }
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus { outline: 2px solid #3b82f6; border-color: transparent; }
+    .field textarea { resize: vertical; min-height: 80px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    /* IMAGE UPLOADER */
+    .image-upload-area {
+      border: 2px dashed #d1d5db;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+    }
+    .image-upload-area:hover,
+    .image-upload-area.drag-over { border-color: #3b82f6; background: #eff6ff; }
+    .image-upload-area input[type="file"] {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      cursor: pointer;
+      width: 100%;
+      height: 100%;
+    }
+    .upload-icon  { font-size: 2rem; margin-bottom: 0.5rem; }
+    .upload-label { font-size: 0.9rem; font-weight: 500; color: #374151; }
+    .upload-hint  { font-size: 0.75rem; color: #9ca3af; margin-top: 0.25rem; }
+
+    #image-previews { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 0.5rem; }
+    .preview-item {
+      position: relative;
+      width: 90px;
+      height: 90px;
+      border-radius: 6px;
+      overflow: hidden;
+      border: 1px solid #e5e7eb;
+      flex-shrink: 0;
+    }
+    .preview-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .preview-remove {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      background: rgba(0,0,0,0.6);
+      color: #fff;
+      border: none;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+    .preview-item .upload-progress {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.45);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    #modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid #e5e7eb;
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+      position: sticky;
+      bottom: 0;
+      background: #fff;
+    }
+    #cancel-btn {
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    #cancel-btn:hover { background: #e5e7eb; }
+    #save-btn {
+      background: #3b82f6;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.25rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-weight: 500;
+      min-width: 100px;
+    }
+    #save-btn:hover { background: #2563eb; }
+    #save-btn:disabled { background: #93c5fd; cursor: not-allowed; }
+    #form-error { font-size: 0.82rem; color: #dc2626; display: none; }
+
+    /* CONFIRM DIALOG */
+    #confirm-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    #confirm-overlay.open { display: flex; }
+    #confirm-box {
+      background: #fff;
+      border-radius: 12px;
+      padding: 2rem;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+    #confirm-box h3 { font-size: 1.1rem; margin-bottom: 0.5rem; }
+    #confirm-box p  { font-size: 0.875rem; color: #6b7280; margin-bottom: 1.5rem; }
+    .confirm-actions { display: flex; gap: 0.75rem; justify-content: center; }
+    #confirm-cancel-btn {
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.5rem;
+      font-size: 0.9rem;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #confirm-cancel-btn:hover { background: #e5e7eb; }
+    #confirm-delete-btn {
+      background: #dc2626;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      padding: 0.5rem 1.5rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      font-family: inherit;
+    }
+    #confirm-delete-btn:hover { background: #b91c1c; }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div id="login-box">
+    <h1>My Little Warehouse</h1>
+    <p>Sign in to manage your inventory</p>
+    <div class="login-field">
+      <label for="login-email">Email</label>
+      <input id="login-email" type="email" placeholder="you@example.com" />
+    </div>
+    <div class="login-field">
+      <label for="login-password">Password</label>
+      <input id="login-password" type="password" placeholder="••••••••" />
+    </div>
+    <button id="login-btn" onclick="signIn()">Sign In</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <h1>My Little Warehouse</h1>
+    <div class="header-right">
+      <span id="user-email"></span>
+      <button id="add-btn" onclick="openModal()">+ Add Item</button>
+      <button id="logout-btn" onclick="signOut()">Sign Out</button>
+    </div>
+  </header>
+  <div id="status"></div>
+  <div id="grid"></div>
+</div>
+
+<!-- ADD / EDIT MODAL -->
+<div id="modal-overlay">
+  <div id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div id="modal-header">
+      <h2 id="modal-title">Add New Item</h2>
+      <button id="modal-close" onclick="closeModal()" aria-label="Close">&#x2715;</button>
+    </div>
+    <div id="modal-body">
+      <div class="field">
+        <label for="f-title">Title *</label>
+        <input id="f-title" type="text" placeholder="e.g. Oak Dining Table" />
+      </div>
+      <div class="field">
+        <label for="f-description">Description</label>
+        <textarea id="f-description" placeholder="Notes, dimensions, any other details..."></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-category">Category</label>
+          <input id="f-category" type="text" placeholder="e.g. Sofa, Dining, Art" />
+        </div>
+        <div class="field">
+          <label for="f-condition">Condition</label>
+          <select id="f-condition">
+            <option value="">— select —</option>
+            <option value="Excellent">Excellent</option>
+            <option value="Good">Good</option>
+            <option value="Fair">Fair</option>
+            <option value="Poor">Poor</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-status">Status</label>
+          <select id="f-status">
+            <option value="Available">Available</option>
+            <option value="Reserved">Reserved</option>
+            <option value="Sold">Sold</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="f-location">Location</label>
+          <input id="f-location" type="text" placeholder="e.g. Unit A, Client House" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="f-listing">Listing URL</label>
+        <input id="f-listing" type="url" placeholder="https://facebook.com/marketplace/..." />
+      </div>
+      <div class="field">
+        <label>Photos (up to 3)</label>
+        <div class="image-upload-area" id="upload-area">
+          <input type="file" id="f-images" accept="image/*" multiple />
+          <div class="upload-icon">📷</div>
+          <div class="upload-label">Tap to choose photos</div>
+          <div class="upload-hint">JPG, PNG, WEBP — up to 3 images</div>
+        </div>
+        <div id="image-previews"></div>
+      </div>
+      <p id="form-error"></p>
+    </div>
+    <div id="modal-footer">
+      <button id="cancel-btn" onclick="closeModal()">Cancel</button>
+      <button id="save-btn" onclick="saveItem()">Save Item</button>
+    </div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM DIALOG -->
+<div id="confirm-overlay">
+  <div id="confirm-box">
+    <h3>Delete this item?</h3>
+    <p>This can't be undone.</p>
+    <div class="confirm-actions">
+      <button id="confirm-cancel-btn" onclick="closeConfirm()">Cancel</button>
+      <button id="confirm-delete-btn" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://bjthjhnecomzgibumxpf.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_Xw8t-TvFmOv8bWdGrvBB_A_HP9biN8i';
+  const TABLE        = 'Items';
+  const BUCKET       = 'item-images';
+
+  const status = document.getElementById('status');
+  const grid   = document.getElementById('grid');
+
+  let selectedFiles  = [];   // new File objects picked in the modal
+  let existingImages = [];   // URLs already saved (edit mode)
+  let currentSession = null; // logged-in user session
+  let editingId      = null; // id of item being edited (null = add mode)
+  let pendingDeleteId = null; // id waiting for delete confirmation
+
+  // ── DROPDOWN HELPERS ────────────────────────────────────────
+
+  function toggleDropdown(dropdown) {
+    const isOpen = dropdown.classList.contains('open');
+    closeAllDropdowns();
+    if (!isOpen) dropdown.classList.add('open');
+  }
+
+  function closeAllDropdowns() {
+    document.querySelectorAll('.card-dropdown.open').forEach(d => d.classList.remove('open'));
+  }
+
+  // Close dropdowns when clicking anywhere else
+  document.addEventListener('click', closeAllDropdowns);
+
+  // ── AUTH ─────────────────────────────────────────────────────
+
+  async function signIn() {
+    const email    = document.getElementById('login-email').value.trim();
+    const password = document.getElementById('login-password').value;
+    const btn      = document.getElementById('login-btn');
+
+    if (!email || !password) { showLoginError('Please enter your email and password.'); return; }
+    btn.disabled = true;
+    btn.textContent = 'Signing in...';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', apikey: SUPABASE_KEY },
+        body: JSON.stringify({ email, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error_description || data.msg || 'Sign in failed');
+
+      currentSession = data;
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('user-email').textContent = data.user.email;
+      loadItems();
+    } catch (err) {
+      showLoginError(err.message);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Sign In';
+    }
+  }
+
+  function signOut() {
+    currentSession = null;
+    grid.innerHTML = '';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-email').value = '';
+    document.getElementById('login-password').value = '';
+  }
+
+  function showLoginError(msg) {
+    const el = document.getElementById('login-error');
+    el.textContent = msg;
+    el.style.display = 'block';
+  }
+
+  document.getElementById('login-password').addEventListener('keydown', e => {
+    if (e.key === 'Enter') signIn();
+  });
+
+  function authHeaders(extra = {}) {
+    return { apikey: SUPABASE_KEY, Authorization: `Bearer ${currentSession.access_token}`, ...extra };
+  }
+
+  // ── LOAD ITEMS ───────────────────────────────────────────────
+
+  async function loadItems() {
+    setStatus('Loading...');
+    grid.innerHTML = '';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?select=*`, {
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      if (!data.length) { setStatus('No items yet. Add your first one!'); return; }
+      setStatus(`Showing ${data.length} item${data.length !== 1 ? 's' : ''}.`);
+      data.forEach(row => grid.appendChild(buildCard(row)));
+    } catch (err) {
+      setStatus(`Error: ${err.message}`, true);
+    }
+  }
+
+  // ── BUILD CARD ───────────────────────────────────────────────
+
+  function buildCard(row) {
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    const images = Array.isArray(row.images) ? row.images.filter(Boolean) : [];
+
+    // Image wrap holds the photo + the three-dot menu overlay
+    const imgWrap = document.createElement('div');
+    imgWrap.className = 'card-img-wrap';
+    imgWrap.style.position = 'relative';
+
+    if (images.length) {
+      const img = document.createElement('img');
+      img.src = images[0];
+      img.alt = row.title ?? '';
+      img.onerror = () => img.replaceWith(noImg());
+      imgWrap.appendChild(img);
+    } else {
+      imgWrap.appendChild(noImg());
+    }
+
+    // Three-dot menu
+    const menuWrap = document.createElement('div');
+    menuWrap.className = 'card-menu-wrap';
+
+    const dotsBtn = document.createElement('button');
+    dotsBtn.className = 'btn-dots';
+    dotsBtn.innerHTML = '&#8943;';
+    dotsBtn.title = 'Options';
+    dotsBtn.onclick = e => { e.stopPropagation(); toggleDropdown(dropdown); };
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'card-dropdown';
+
+    const editOpt = document.createElement('button');
+    editOpt.textContent = '✏️  Edit';
+    editOpt.onclick = () => { closeAllDropdowns(); openEditModal(row); };
+
+    const deleteOpt = document.createElement('button');
+    deleteOpt.textContent = '🗑️  Delete';
+    deleteOpt.className = 'danger';
+    deleteOpt.onclick = () => { closeAllDropdowns(); openConfirm(row.id); };
+
+    dropdown.appendChild(editOpt);
+    dropdown.appendChild(deleteOpt);
+    menuWrap.appendChild(dotsBtn);
+    menuWrap.appendChild(dropdown);
+    imgWrap.appendChild(menuWrap);
+    card.appendChild(imgWrap);
+
+    const body = document.createElement('div');
+    body.className = 'card-body';
+
+    const h2 = document.createElement('h2');
+    h2.textContent = row.title ?? '(no title)';
+    body.appendChild(h2);
+
+    if (row.description) {
+      const p = document.createElement('p');
+      p.textContent = row.description;
+      body.appendChild(p);
+    }
+    if (row.location) {
+      const p = document.createElement('p');
+      p.style.cssText = 'font-size:0.8rem;color:#888;';
+      p.textContent = 'Location: ' + row.location;
+      body.appendChild(p);
+    }
+    if (row.listing) {
+      const a = document.createElement('a');
+      a.href = row.listing;
+      a.target = '_blank';
+      a.style.cssText = 'font-size:0.8rem;color:#3b82f6;display:block;margin-top:0.25rem;';
+      a.textContent = 'View listing';
+      body.appendChild(a);
+    }
+
+    const meta = document.createElement('div');
+    meta.className = 'card-meta';
+    if (row.status) {
+      const cls = { available:'badge-status-available', reserved:'badge-status-reserved', sold:'badge-status-sold' }[row.status.toLowerCase()] ?? 'badge-status-default';
+      meta.appendChild(makeBadge(row.status, cls));
+    }
+    if (row.category)  meta.appendChild(makeBadge(row.category,  'badge-category'));
+    if (row.condition) meta.appendChild(makeBadge(row.condition, 'badge-condition'));
+    body.appendChild(meta);
+    card.appendChild(body);
+    return card;
+  }
+
+  function makeBadge(text, cls) {
+    const b = document.createElement('span');
+    b.className = `badge ${cls}`;
+    b.textContent = text;
+    return b;
+  }
+
+  function noImg() {
+    const div = document.createElement('div');
+    div.className = 'card-no-img';
+    div.textContent = 'No image';
+    return div;
+  }
+
+  function setStatus(msg, isError = false) {
+    status.textContent = msg;
+    status.className = isError ? 'error' : '';
+  }
+
+  // ── ADD MODAL ────────────────────────────────────────────────
+
+  function openModal() {
+    editingId = null;
+    document.getElementById('modal-title').textContent = 'Add New Item';
+    document.getElementById('save-btn').textContent = 'Save Item';
+    clearForm();
+    document.getElementById('modal-overlay').classList.add('open');
+    document.getElementById('f-title').focus();
+  }
+
+  // ── EDIT MODAL ───────────────────────────────────────────────
+
+  function openEditModal(row) {
+    editingId = row.id;
+    document.getElementById('modal-title').textContent = 'Edit Item';
+    document.getElementById('save-btn').textContent = 'Update Item';
+    clearForm();
+
+    // Pre-fill fields
+    document.getElementById('f-title').value       = row.title       ?? '';
+    document.getElementById('f-description').value = row.description ?? '';
+    document.getElementById('f-category').value    = row.category    ?? '';
+    document.getElementById('f-condition').value   = row.condition   ?? '';
+    document.getElementById('f-status').value      = row.status      ?? 'Available';
+    document.getElementById('f-location').value    = row.location    ?? '';
+    document.getElementById('f-listing').value     = row.listing     ?? '';
+
+    // Load existing images as previews
+    existingImages = Array.isArray(row.images) ? [...row.images] : [];
+    existingImages.forEach((url, i) => addExistingPreview(url, i));
+
+    document.getElementById('modal-overlay').classList.add('open');
+    document.getElementById('f-title').focus();
+  }
+
+  // Show a preview thumbnail for an already-saved image URL
+  function addExistingPreview(url, index) {
+    const wrap = document.createElement('div');
+    wrap.className = 'preview-item';
+    wrap.dataset.existingIndex = index;
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'existing';
+
+    const btn = document.createElement('button');
+    btn.className = 'preview-remove';
+    btn.textContent = '×';
+    btn.onclick = () => removeExistingPreview(index);
+
+    wrap.appendChild(img);
+    wrap.appendChild(btn);
+    document.getElementById('image-previews').appendChild(wrap);
+  }
+
+  function removeExistingPreview(index) {
+    existingImages.splice(index, 1);
+    // Re-render existing previews
+    const previews = document.getElementById('image-previews');
+    // Remove only existing-image previews, keep new-file previews
+    previews.querySelectorAll('[data-existing-index]').forEach(el => el.remove());
+    existingImages.forEach((url, i) => addExistingPreview(url, i));
+  }
+
+  function closeModal() {
+    document.getElementById('modal-overlay').classList.remove('open');
+    clearForm();
+    editingId = null;
+  }
+
+  function clearForm() {
+    ['f-title','f-description','f-category','f-location','f-listing']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('f-condition').value = '';
+    document.getElementById('f-status').value = 'Available';
+    document.getElementById('f-images').value = '';
+    selectedFiles  = [];
+    existingImages = [];
+    document.getElementById('image-previews').innerHTML = '';
+    showFormError('');
+  }
+
+  function showFormError(msg) {
+    const el = document.getElementById('form-error');
+    el.textContent = msg;
+    el.style.display = msg ? 'block' : 'none';
+  }
+
+  // ── IMAGE SELECTION ──────────────────────────────────────────
+
+  document.getElementById('f-images').addEventListener('change', function () {
+    const incoming = Array.from(this.files);
+    const slots = 3 - existingImages.length - selectedFiles.length;
+    if (slots <= 0) { showFormError('Maximum 3 photos. Remove one first.'); this.value = ''; return; }
+    const toAdd = incoming.slice(0, slots);
+    if (incoming.length > slots) showFormError(`Only ${slots} slot(s) remaining — added the first ${slots}.`);
+    else showFormError('');
+    toAdd.forEach(file => { selectedFiles.push(file); addNewPreview(file, selectedFiles.length - 1); });
+    this.value = '';
+  });
+
+  function addNewPreview(file, index) {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const wrap = document.createElement('div');
+      wrap.className = 'preview-item';
+      wrap.dataset.newIndex = index;
+
+      const img = document.createElement('img');
+      img.src = e.target.result;
+      img.alt = file.name;
+
+      const btn = document.createElement('button');
+      btn.className = 'preview-remove';
+      btn.textContent = '×';
+      btn.onclick = () => removeNewPreview(index);
+
+      wrap.appendChild(img);
+      wrap.appendChild(btn);
+      document.getElementById('image-previews').appendChild(wrap);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function removeNewPreview(index) {
+    selectedFiles.splice(index, 1);
+    document.getElementById('image-previews').querySelectorAll('[data-new-index]').forEach(el => el.remove());
+    selectedFiles.forEach((file, i) => addNewPreview(file, i));
+    showFormError('');
+  }
+
+  const uploadArea = document.getElementById('upload-area');
+  uploadArea.addEventListener('dragover',  e => { e.preventDefault(); uploadArea.classList.add('drag-over'); });
+  uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('drag-over'));
+  uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    if (e.dataTransfer.files.length) {
+      document.getElementById('f-images').files = e.dataTransfer.files;
+      document.getElementById('f-images').dispatchEvent(new Event('change'));
+    }
+  });
+
+  // ── UPLOAD IMAGE ─────────────────────────────────────────────
+
+  async function uploadImage(file) {
+    const ext      = file.name.split('.').pop();
+    const fileName = `${currentSession.user.id}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${BUCKET}/${fileName}`, {
+      method: 'POST',
+      headers: authHeaders({ 'Content-Type': file.type }),
+      body: file,
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.error || body.message || `Upload failed (HTTP ${res.status})`);
+    }
+    return `${SUPABASE_URL}/storage/v1/object/public/${BUCKET}/${fileName}`;
+  }
+
+  // ── SAVE / UPDATE ITEM ───────────────────────────────────────
+
+  async function saveItem() {
+    const title = document.getElementById('f-title').value.trim();
+    if (!title) { showFormError('Title is required.'); return; }
+
+    const saveBtn = document.getElementById('save-btn');
+    saveBtn.disabled = true;
+
+    try {
+      // Upload any new photos
+      const newUrls = [];
+      for (let i = 0; i < selectedFiles.length; i++) {
+        saveBtn.textContent = `Uploading photo ${i + 1} of ${selectedFiles.length}...`;
+        const wrap = document.querySelector(`.preview-item[data-new-index="${i}"]`);
+        if (wrap) {
+          const overlay = document.createElement('div');
+          overlay.className = 'upload-progress';
+          overlay.textContent = 'Uploading...';
+          wrap.appendChild(overlay);
+        }
+        const url = await uploadImage(selectedFiles[i]);
+        newUrls.push(url);
+        if (wrap) wrap.querySelector('.upload-progress')?.remove();
+      }
+
+      saveBtn.textContent = editingId ? 'Updating...' : 'Saving...';
+
+      // Combine kept existing images with newly uploaded ones
+      const allImages = [...existingImages, ...newUrls];
+
+      const payload = {
+        title,
+        description: document.getElementById('f-description').value.trim() || null,
+        category:    document.getElementById('f-category').value.trim()    || null,
+        condition:   document.getElementById('f-condition').value          || null,
+        status:      document.getElementById('f-status').value             || null,
+        location:    document.getElementById('f-location').value.trim()    || null,
+        listing:     document.getElementById('f-listing').value.trim()     || null,
+        images:      allImages.length ? allImages : null,
+      };
+
+      if (editingId) {
+        // PATCH — update existing row
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${editingId}`, {
+          method: 'PATCH',
+          headers: authHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || `HTTP ${res.status}`);
+        }
+      } else {
+        // POST — insert new row
+        payload.user_id = currentSession.user.id;
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}`, {
+          method: 'POST',
+          headers: authHeaders({ 'Content-Type': 'application/json', Prefer: 'return=minimal' }),
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const body = await res.json().catch(() => ({}));
+          throw new Error(body.message || `HTTP ${res.status}`);
+        }
+      }
+
+      closeModal();
+      loadItems();
+
+    } catch (err) {
+      showFormError(`Error: ${err.message}`);
+    } finally {
+      saveBtn.disabled = false;
+      saveBtn.textContent = editingId ? 'Update Item' : 'Save Item';
+    }
+  }
+
+  // ── DELETE ───────────────────────────────────────────────────
+
+  function openConfirm(id) {
+    pendingDeleteId = id;
+    document.getElementById('confirm-overlay').classList.add('open');
+  }
+
+  function closeConfirm() {
+    pendingDeleteId = null;
+    document.getElementById('confirm-overlay').classList.remove('open');
+  }
+
+  async function confirmDelete() {
+    if (!pendingDeleteId) return;
+    const btn = document.getElementById('confirm-delete-btn');
+    btn.disabled = true;
+    btn.textContent = 'Deleting...';
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.${pendingDeleteId}`, {
+        method: 'DELETE',
+        headers: authHeaders(),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.message || `HTTP ${res.status}`);
+      }
+      closeConfirm();
+      loadItems();
+    } catch (err) {
+      alert(`Delete failed: ${err.message}`);
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Delete';
+    }
+  }
+
+  // Close modals on overlay click or Escape
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+  document.getElementById('confirm-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('confirm-overlay')) closeConfirm();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeModal(); closeConfirm(); }
+  });
+</script>
+</body>
+</html>
