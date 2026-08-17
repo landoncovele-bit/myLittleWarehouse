@@ -36,3 +36,11 @@ I run a small moving and staging labor business (Covele Deeds) and kept seeing t
 
 Actively developed as a personal/portfolio project. Planned next steps include analytics/dashboard views, CSV export, and mobile responsiveness improvements.
 
+## Screenshots
+
+<img width="537" height="636" alt="Screenshot 2026-08-16 at 7 31 17 PM" src="https://github.com/user-attachments/assets/92834531-8d34-4426-abb0-1cc8745a5558" />
+
+<img width="1279" height="678" alt="Screenshot 2026-08-16 at 7 37 53 PM" src="https://github.com/user-attachments/assets/45d7c4c1-fd6f-49b9-a262-b15869725143" />
+
+<img width="1281" height="680" alt="Screenshot 2026-08-16 at 7 37 29 PM" src="https://github.com/user-attachments/assets/1b9b2cc4-7061-4618-888b-570bc4fb9faa" />
+
